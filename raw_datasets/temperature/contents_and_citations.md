@@ -10,13 +10,13 @@
 - Source citations
 
 ## US National Average
-#### NOAA National Centers for Environmental Information (NCEI), National Time Series average annual temperature 1895-2025
+#### NOAA National Centers for Environmental Information (NCEI), National Time Series average annual temperature 1895-2025 (°F)
 - GlobalWarmingExploration/raw_datasets/temperature/us_national_average/202602/ncei-continental_us_average_temperature-202602.csv
 
 **Citation:** NOAA National Centers for Environmental information, Climate at a Glance: National Time Series, published February 2026, retrieved on March 5, 2026 from https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/national/time-series
 
 ## Average Anomaly
-#### NOAA National Centers for Environmental Information (NCEI) Global Time Series, mean temperature anomaly
+#### NOAA National Centers for Environmental Information (NCEI) Global Time Series, mean temperature anomaly (°C)
 Global, deviation from 1901 - 2000 mean
 
 - GlobalWarmingExploration/raw_datasets/temperature/global_anomaly/202602/ncei-global_temperature_anomaly-202602.csv
@@ -55,7 +55,7 @@ Antarctic, deviation from 1910 - 2000 mean
 
 **Citation:** NOAA National Centers for Environmental Information, Climate at a Glance: Global Time Series, published February 2026, retrieved on March 5, 2026 from https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/global/time-series
 
-#### NASA GISS (Goddard Institute for Space Studies) Surface Temperature Analysis (GISTEMP) mean temperature anomaly
+#### NASA GISS (Goddard Institute for Space Studies) Surface Temperature Analysis (GISTEMP) mean temperature anomaly (°C)
 Global, deviation from 1951 - 1980 mean
 
 - GlobalWarmingExploration/raw_datasets/temperature/global_anomaly/202602/gistemp-global_anomaly-202602.csv
