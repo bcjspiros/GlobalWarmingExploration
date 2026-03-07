@@ -1,0 +1,78 @@
+---
+title: "Exploration of the correlation between annual CO<sub>2</sub> and global annual anomaly"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Setup and load the datasets
+
+```{r Setup,echo=TRUE,results='hide',message=FALSE,warning=FALSE}
+library(tidyverse)
+library(grid) # used to adjust margin in ggplot
+library(here) # cleanly construct paths to datasets
+```
+
+Atmospheric CO<sub>2</sub> data will come from the **NOAA Global Monitoring Laboratory(GML) trends in atmospheric CO<sub>2</sub>, Globally averaged from marine surface collection sites** annual mean dataset. CO<sub>2</sub> is measured in parts per million (ppm).
+
+Annual temperature anomaly will come from the **NOAA National Centers for Environmental Information (NCEI) Global Time Series, mean temperature anomaly** global dataset. This dataset uses a baseline mean from 1901 - 2000 to calculate the temperature anomalies.
+
+```{r Load datasets,echo=TRUE,message=FALSE,warning=FALSE}
+gml_annual_co2_gl <- read_csv(
+    here("raw_datasets/greenhouse_gasses/CO2/202603/gml-co2_annmean_gl-202603.csv"),
+    comment = "#"
+)
+ncei_global_anomaly <- read_csv(
+    here("raw_datasets/temperature/global_anomaly/202602/ncei-global_temperature_anomaly-202602.csv"),
+    comment = "#"
+)
+```
+
+# Organize and check the datasets
+
+Merge the two datasets so we can chart the correlation between the annual global mean C0<sub>2</sub> levels and the annual anomaly.
+
+The CO<sub>2</sub> levels dataset starts in 1979, so we will use data from 1979 - 2025.
+
+The two datasets will be merged into a dataframe with the columns `Year`, `Anomaly` and `Mean_CO2`.
+
+```{r Merge datasets}
+global_anomaly_annual_co2_combined <- 
+    ncei_global_anomaly %>% 
+    filter(Year >= 1979) %>% 
+    left_join(
+        select(gml_annual_co2_gl, year, mean) %>% 
+            rename(Year = year, Mean_CO2 = mean), 
+        by = "Year"
+    )
+```
+
+Quick check to make sure there are no missing values, and that the data types of each column are numeric.
+
+```{r Check merged dataset}
+colSums(is.na(global_anomaly_annual_co2_combined))
+sapply(global_anomaly_annual_co2_combined, typeof)
+```
+
+# Plot correlation scatterplot
+
+```{r Generate plot,message=FALSE}
+ggplot(global_anomaly_annual_co2_combined, mapping=aes(x=Mean_CO2, y=Anomaly)) +
+    geom_point(aes(color=Year)) +
+    geom_smooth(se=FALSE) +
+    labs(
+        title="Atmospheric CO"[2]~"vs Global Mean Temperature Anomaly, 1979 to 2025",
+        subtitle="Anomaly measured as deviation from 1901 to 2000 mean",
+        x="Atmospheric CO"[2]~"(ppm)",
+        y="Anomaly (\u00B0C)",
+        caption="Sources: NOAA GML, trends in atmospheric CO2\nNOAA NCEI Global Time Series mean temperature anomaly"
+    ) +
+    theme(
+        plot.margin=unit(c(5, 5, 5, 5), "mm"),
+        plot.caption=element_text(
+            hjust=0,
+            vjust=-1
+        )
+    )
+```
+
