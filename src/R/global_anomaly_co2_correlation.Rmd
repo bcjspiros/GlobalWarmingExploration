@@ -1,8 +1,8 @@
 ---
 title: "Exploration of the correlation between annual CO<sub>2</sub> and global annual anomaly"
-output:
-  html_document:
-    df_print: paged
+author: "Jay Spiros"
+date: "`r Sys.Date()`"
+output: html_document
 ---
 
 # Setup and load the datasets
@@ -29,7 +29,7 @@ ncei_global_anomaly <- read_csv(
     comment = "#"
 )
 ```
-
+x
 # Organize and check the datasets
 
 Merge the two datasets so we can chart the correlation between the annual global mean C0<sub>2</sub> levels and the annual anomaly.
@@ -85,7 +85,9 @@ co2_anomaly_corrplot <- ggplot(global_anomaly_annual_co2_combined, mapping=aes(x
 co2_anomaly_corrplot
 ```
 
-Atmospheric CO<sub>2</sub> concentration over time
+To add to the correlation plot we'll create a combo plot showing the correlation plot paired with a plot of the atmospheric CO<sub>2</sub> concentration over time.
+
+First we create the timeseries plot
 
 ```{r Plot CO2 timeseries}
 co2_timeseriesplot <- ggplot(global_anomaly_annual_co2_combined, mapping=aes(x=Year, y=Mean_CO2)) +
@@ -110,6 +112,7 @@ co2_timeseriesplot <- ggplot(global_anomaly_annual_co2_combined, mapping=aes(x=Y
 co2_timeseriesplot
 ```
 
+Then combine the two plots using the patchwork library
 
 ```{r Combined plots, message=FALSE, fig.width=14, fig.height=6}
 combo_plot <- co2_anomaly_corrplot + co2_timeseriesplot
