@@ -1,0 +1,81 @@
+---
+title: "Charting methane(CH<sub>4</sub>) atmospheric concentration increase over time"
+author: "Jay Spiros"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+Methane(CH<sub>4</sub>) is a greenhouse gas of serious concern, as it is thought to trap even more heat than carbon dioxide(CO<sub>2</sub>). As the planet has warmed, more and more permafrost has started to melt, allowing methane trapped there to escape into the atmosphere and contribute to global warming.
+
+# Setup and load the datasets
+
+```{r Setup,echo=TRUE,results='hide',message=FALSE,warning=FALSE}
+library(tidyverse)
+library(grid) # used to adjust margin in ggplot
+library(here) # cleanly construct paths to datasets
+```
+
+Atmospheric CH<sub>4</sub> data will come from the **NOAA Global Monitoring Laboratory (GML) trends in atmospheric CH<sub>4</sub>, globally averaged from marine surface collection sites** annual mean dataset. CH<sub>4</sub> is measured in parts per billion (ppb).
+
+```{r Load datasets,echo=TRUE,message=FALSE,warning=FALSE}
+
+# not 100% necessary, but testing for some other datasets where it will be needed.
+dataset_date <- "202603"
+greenhouse_gas <- "CH4"
+
+gml_annual_ch4_gl <- read_csv(
+    here(
+        "raw_datasets/greenhouse_gasses", 
+        greenhouse_gas, 
+        dataset_date, 
+        paste0("gml-", tolower(greenhouse_gas), "_annmean_gl-", dataset_date, ".csv")
+    ),
+    comment = "#"
+)
+
+```
+
+# Check the dataset
+
+We're just doing a simple timeseries graph for CH<sub>4</sub>, so no need to do anything other than make sure the dataset has no missing or wrongly typed values.
+
+The date range available is 1984 to 2025
+
+Quick check to make sure there are no missing values, and that the data types of each column are numeric.
+
+```{r Check merged dataset}
+colSums(is.na(gml_annual_ch4_gl))
+sapply(gml_annual_ch4_gl, typeof)
+```
+
+# Create visualizations
+
+Plot the atmospheric CH<sub>4</sub> concentration 
+
+```{r plot CH4 timeseries}
+ch4_timeseriesplot <- ggplot(gml_annual_ch4_gl, mapping=aes(x=year, y=mean)) +
+    geom_point(color="green") +
+    geom_line(color="green") +
+    labs(
+        title="Atmospheric CH"[4]~"Concentration Over Time, 1984 to 2025",
+        subtitle="CH"[4]~"concentration globally averaged from marine surface collection sites",
+        x="Year",
+        y="Atmospheric CH"[4]~"(ppb)",
+        caption="Source: NOAA GML, trends in atmospheric CH4"
+    ) +
+    theme(
+        plot.margin=unit(c(3, 4, 2, 4), "mm"),
+        plot.caption=element_text(
+            hjust=0,
+            # vjust=-1
+        )
+    )
+ch4_timeseriesplot
+```
+
+# Save plot to PNG file
+
+```{r Save plots }
+ggsave(here("images","ch4_timeseries.png"), plot=ch4_timeseriesplot, width = 9, height = 6)
+
+```
