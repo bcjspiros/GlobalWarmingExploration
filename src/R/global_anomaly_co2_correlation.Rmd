@@ -61,16 +61,30 @@ sapply(global_anomaly_annual_co2_combined, typeof)
 Correlation of atmospheric CO<sub>2</sub> and global temperature anomaly
 
 ```{r plot correlation scatterplot,message=FALSE}
+# string wrap annotation using stringr
+wrapped_anomaly_ann <- 
+    str_wrap(
+        "Anomaly measured as deviation from 1901 to 2000 mean",
+        width=30
+    )
+
+
 co2_anomaly_corrplot <- ggplot(global_anomaly_annual_co2_combined, mapping=aes(x=Mean_CO2, y=Anomaly)) +
    # geom_point(aes(color=Year)) +
     geom_point() +
     geom_smooth(se=FALSE) +
     labs(
         title="Atmospheric CO"[2]~"vs Global Mean Temperature Anomaly, 1979 to 2025",
-        subtitle="Anomaly measured as deviation from 1901 to 2000 mean",
+        subtitle="C0"[2]~"concentration globally averaged from marine surface collection sites",
         x="Atmospheric CO"[2]~"(ppm)",
         y="Anomaly (\u00B0C)",
         caption="Sources: NOAA GML, trends in atmospheric CO2\nNOAA NCEI Global Time Series mean temperature anomaly"
+    ) +
+    annotate("text",
+        x=350, y=1.00,
+        label=wrapped_anomaly_ann,
+        size=3.5,
+        hjust=0.5 # centered
     ) +
     theme(
         plot.margin=unit(c(2, 3, 2, 3), "mm"),
