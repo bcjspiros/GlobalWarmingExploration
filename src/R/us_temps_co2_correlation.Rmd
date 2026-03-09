@@ -1,0 +1,135 @@
+---
+title: "Exploration of the correlation between atmospheric CO<sub>2</sub> and US average temperature"
+author: "Jay Spiros"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Setup and load the datasets
+
+```{r Setup,echo=TRUE,results='hide',message=FALSE,warning=FALSE}
+library(tidyverse)
+library(grid) # used to adjust margin in ggplot
+library(here) # cleanly construct paths to datasets
+```
+
+Atmospheric CO<sub>2</sub> data will come from the **NOAA Global Monitoring Laboratory(GML) trends in atmospheric CO<sub>2</sub>, Mauna Loa Observatory** annual mean dataset. CO<sub>2</sub> is measured in parts per million (ppm).
+
+US average annual temperature will come from the **NOAA National Centers for Environmental Information (NCEI), National Time Series average annual temperature 1895-2025** dataset. Average temp is measured in °F.
+
+```{r Load datasets,echo=TRUE,message=FALSE,warning=FALSE}
+
+# not 100% necessary, but testing for some other datasets where it will be needed.
+dataset_date <- "202603"
+greenhouse_gas <- "CO2"
+
+gml_annual_co2_mlo <- read_csv(
+    here(
+        "raw_datasets/greenhouse_gasses", 
+        greenhouse_gas, 
+        dataset_date, 
+        paste0("gml-", tolower(greenhouse_gas), "_annmean_mlo-", dataset_date, ".csv")
+    ),
+    comment = "#"
+)
+
+ncei_us_average_temp <- read_csv(
+    here(
+        "raw_datasets/temperature/us_national_average",
+        dataset_date,
+        paste0("ncei-continental_us_average_temperature-", dataset_date, ".csv")
+    ),
+    comment = "#"
+)
+```
+
+# Organize and check the datasets
+
+It's not strictly necessary to merge the datasets, but it feels cleaner.
+
+The us temperature set has a `date` field that's **YYYYMM** so that will be separated into `year` and `month` fields. Column names will also be cleaned up.
+
+The date range will be 1979 to 2025 to match the global mean anomaly correlation graph
+
+```{r prep dataframes for merge}
+ncei_us_average_temp_trimmed <-
+    ncei_us_average_temp %>%  
+    separate(col=Date, into=c("year", "month"), sep=4, convert=TRUE) %>% 
+    filter(year >= 1979) %>% 
+    rename(avg_temp = Value) %>% 
+    select(year, avg_temp)
+
+gml_annual_co2_mlo_trimmed <-
+    gml_annual_co2_mlo %>% 
+    rename(mean_co2 = mean) %>% 
+    filter(year >= 1979) %>% 
+    select(year, mean_co2)
+```
+
+```{r merge dataframes}
+us_average_annual_co2_combined <-
+    inner_join(ncei_us_average_temp_trimmed, gml_annual_co2_mlo_trimmed, by="year")
+```
+
+Quick check to make sure there are no missing values, and that the data types of each column are numeric.
+
+```{r Check merged dataset}
+colSums(is.na(global_anomaly_annual_co2_combined))
+sapply(global_anomaly_annual_co2_combined, typeof)
+```
+
+# Create visualizations
+
+Plot the atmospheric CO<sub>2</sub> vs the US national temperature average 
+
+```{r plot correlation scatterplot,message=FALSE}
+co2_ustemp_corrplot <- ggplot(us_average_annual_co2_combined, mapping=aes(x=mean_co2, y=avg_temp)) +
+    geom_point(aes(color=year)) +
+    scale_color_gradient(low = "green", high = "red") +
+    geom_smooth(se=FALSE) +
+    labs(
+        title="Atmospheric CO"[2]~"vs US National Average Temperature, 1979 to 2025",
+        x="Atmospheric CO"[2]~"(ppm)",
+        y="US Average Temperature (\u00B0F)",
+        caption="Sources: NOAA GML, trends in atmospheric CO2\nNOAA NCEI national time series average temperature"
+    ) +
+    theme(
+        plot.margin=unit(c(3, 1, 3, 4), "mm"),
+        plot.caption=element_text(
+            hjust=0,
+            vjust=-1
+        )
+    )
+co2_ustemp_corrplot
+```
+For comparison, plot the US national average temperatures over time
+
+```{r plot US average temp timeseries}
+us_temp_timeseriesplot <- ggplot(us_average_annual_co2_combined, mapping=aes(x=year, y=avg_temp)) +
+    geom_point(color="orange") +
+    geom_line(color="orange") +
+    labs(
+        title="US National Average Temperature, 1979 to 2025",
+        x="Year",
+        y="US Average Temperature (\u00B0F)",
+        caption="Source: NOAA NCEI national time series average temperature"
+    ) +
+    theme(
+        plot.margin=unit(c(3, 4, 3, 4), "mm"),
+        plot.caption=element_text(
+            hjust=0,
+            # vjust=-1
+        )
+    )
+us_temp_timeseriesplot
+```
+
+# Save plots to PNG files
+
+```{r Save plots }
+# correlation plot
+ggsave(here("images","co2_v_us_average_temp.png"), plot=co2_ustemp_corrplot, width = 9, height = 6)
+
+# combo plot
+ggsave(here("images","us_average_temp.png"), plot=us_temp_timeseriesplot, width = 9, height = 6)
+```
