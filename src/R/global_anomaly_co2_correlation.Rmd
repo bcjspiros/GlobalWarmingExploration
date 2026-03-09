@@ -105,7 +105,7 @@ First we create the timeseries plot
 
 ```{r Plot CO2 timeseries}
 co2_timeseriesplot <- ggplot(global_anomaly_annual_co2_combined, mapping=aes(x=Year, y=Mean_CO2)) +
-    geom_point() +
+    geom_point(color="red") +
     geom_line(color="red") +
     labs(
         title="Atmospheric CO"[2]~"Concentration Over Time, 1979 to 2025",
