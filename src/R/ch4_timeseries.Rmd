@@ -25,7 +25,7 @@ greenhouse_gas <- "CH4"
 
 gml_annual_ch4_gl <- read_csv(
     here(
-        "raw_datasets/greenhouse_gasses", 
+        "datasets/raw_datasets/greenhouse_gasses", 
         greenhouse_gas, 
         dataset_date, 
         paste0("gml-", tolower(greenhouse_gas), "_annmean_gl-", dataset_date, ".csv")

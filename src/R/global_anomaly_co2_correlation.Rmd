@@ -21,11 +21,11 @@ Annual temperature anomaly will come from the **NOAA National Centers for Enviro
 
 ```{r Load datasets,echo=TRUE,message=FALSE,warning=FALSE}
 gml_annual_co2_gl <- read_csv(
-    here("raw_datasets/greenhouse_gasses/CO2/202603/gml-co2_annmean_gl-202603.csv"),
+    here("datasets/raw_datasets/greenhouse_gasses/CO2/202603/gml-co2_annmean_gl-202603.csv"),
     comment = "#"
 )
 ncei_global_anomaly <- read_csv(
-    here("raw_datasets/temperature/global_anomaly/202602/ncei-global_temperature_anomaly-202602.csv"),
+    here("datasets/raw_datasets/temperature/global_anomaly/202602/ncei-global_temperature_anomaly-202602.csv"),
     comment = "#"
 )
 ```

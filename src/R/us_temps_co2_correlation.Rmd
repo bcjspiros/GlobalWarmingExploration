@@ -25,7 +25,7 @@ greenhouse_gas <- "CO2"
 
 gml_annual_co2_mlo <- read_csv(
     here(
-        "raw_datasets/greenhouse_gasses", 
+        "datasets/raw_datasets/greenhouse_gasses", 
         greenhouse_gas, 
         dataset_date, 
         paste0("gml-", tolower(greenhouse_gas), "_annmean_mlo-", dataset_date, ".csv")
@@ -35,7 +35,7 @@ gml_annual_co2_mlo <- read_csv(
 
 ncei_us_average_temp <- read_csv(
     here(
-        "raw_datasets/temperature/us_national_average",
+        "datasets/raw_datasets/temperature/us_national_average",
         dataset_date,
         paste0("ncei-continental_us_average_temperature-", dataset_date, ".csv")
     ),
