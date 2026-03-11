@@ -1,0 +1,224 @@
+---
+title: "Generating a csv with long form regional anomaly data from 2020 - 2025"
+author: "Jay Spiros"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Setup and load the datasets
+
+```{r Setup,echo=TRUE,results='hide',message=FALSE,warning=FALSE}
+library(tidyverse)
+library(here) # cleanly construct paths to datasets
+```
+
+Annual temperature anomaly will come from the **NOAA National Centers for Environmental Information (NCEI) Global Time Series, mean temperature anomaly** regional datasets. These datasets use a baseline mean from 1910 - 2000 to calculate the temperature anomalies.
+
+The csv file mapping continents/regions to countries was generated using Claude.ai, and is used to construct a dataframe where each row is a year, country, anomaly value
+
+# Load and prepare datasets to be merged into one dataset
+
+First define a helper function to load and get the datasets ready for merging.
+
+```{r Define loading helper function}
+load_and_trim_dataset <- function(region_to_load, 
+                                  ds_date,
+                                  min_year,
+                                  max_year) {
+    # returns a dataframe with the supplied region's anomaly data
+    # trimmed to the years between min_year and max_year. 
+    # Returned dataframe has columns "Year","Region"
+        
+    # load up the df from the dataset .csvs
+    region_df <- read_csv(
+        here("datasets/raw_datasets/temperature/global_anomaly",
+            ds_date,
+            paste0(
+                "ncei-",
+                tolower(region_to_load),
+                "_temperature_anomaly-",
+                ds_date,
+                ".csv"
+            )
+        ),
+        comment="#"
+    )
+    
+    # filter the data to just include the years between min_year and max_year 
+    # and change the "Anomaly" column to be the region's name so the dataframes
+    # can be merged later
+    # !! unquotes the string value in region_to_load, and := (Walrus operator)
+    # is necessary to allow an expression to be used as the left hand side in 
+    # functions from dplyr  
+    trimmed_region_df <- 
+        region_df %>% 
+        filter(Year >= min_year & Year <= max_year) %>% 
+        rename(!!region_to_load := Anomaly)
+    
+    return(trimmed_region_df)
+}
+```
+
+```{r Load datasets,echo=TRUE,message=FALSE,warning=FALSE}
+
+# datestamp on the datasets. must be a string.
+dataset_date <- "202602"
+
+# years to include in the output. must be be numeric
+start_year <- 2020
+end_year <- 2025
+
+# global regions to work with
+# North and South America need special treatment because of the space in their name
+regions <- c("Africa", "Asia", "Europe", "namerica", "samerica", "Oceania", "Arctic", "Antarctic")
+
+# dfs will be stored here to be merged later
+dfs_to_merge <- list()
+
+for (region in regions) {
+    dfs_to_merge <- c(
+        dfs_to_merge,
+        list(load_and_trim_dataset(
+                region_to_load=region, 
+                ds_date=dataset_date, 
+                min_year=start_year,
+                max_year=end_year
+            )
+        )
+    )
+}
+
+```
+
+
+# Merge and check the new dataframe
+
+```{r merge dataframes}
+regional_anomaly <-
+    reduce(dfs_to_merge, left_join, by="Year")
+```
+
+Quick check to make sure there are no missing values, and that the data types of each column are numeric.
+
+```{r Check merged dataset}
+colSums(is.na(regional_anomaly))
+sapply(regional_anomaly, typeof)
+```
+
+# Pivot from wide to long data format
+
+Long format will have `Year`, `Region` and `Anomaly` columns.
+
+Also replace namerica with North America and samerica with South America once we have a `Regions` column.
+
+```{r pivot, find and replace}
+# the "!" is a logical NOT, so the pivot columns selection to pivot is 
+# "all columns except Year"
+# new long format df has columns "Year", "Region". "Anomaly" 
+regional_anomaly_long <-
+    regional_anomaly %>% 
+    pivot_longer(!Year, names_to="Region", values_to="Anomaly")
+
+# find and replace the column name friendly versions of North and South America
+# with their full names
+regional_anomaly_long <-
+    regional_anomaly_long %>% 
+        mutate(Region = 
+                    recode(Region,
+                        "namerica" = "North America",
+                        "samerica" = "South America"
+                    )
+        )
+
+```
+
+# So tableau doesn't work with continents. 
+
+The long format df created is still going to be useful for adding in all the countries of the world by ISO 3166 alpha-3 three letter country codes.
+
+Had Claude AI generate a list of all countries, their country code, and the continent they belong to.
+I moved Greenland (GRL), Svalbard (SJM), and Iceland (ISL) to the "arctic" so that region will be represented in the Tableau heat map.
+
+```{r Load mapping file,echo=TRUE,message=FALSE,warning=FALSE}
+country_codes <-
+    read_csv(here("datasets/other_datasets/iso3166_alpha3_by_continent.csv"))
+```
+
+This code chunk builds the new dataframe 
+
+```{r}
+country_anomaly_long <- regional_anomaly_long %>% 
+    pmap(function(Year, Region, Anomaly) {
+        cc_list <- country_codes %>% 
+            filter(Continent == Region) %>% 
+            pull(Country) %>% 
+            as.list()
+        pmap(list(cc_list), function(cc) {
+            tibble(
+                Year = Year,
+                Country = cc,
+                Anomaly = Anomaly
+            ) 
+        }) %>% list_rbind()
+    }) %>% list_rbind()
+```
+
+```{r}
+View(regional_anomaly_long)
+```
+
+
+```{r}
+new_df <- 
+    tribble(
+        ~Year, ~ Country, ~Continent, ~Anomaly,
+        2025, "USA", "North America", 1.98,
+        2025, "CAN", "North America", 1.98,
+        2025, "MEX", "North America", 1.98,
+        2025, "AUS", "Oceania", 1.16,
+        2025, "NZL", "Oceania", 1.16,
+        2025, "ATA", "Antarctica", 0.51,
+        2025, "GRL", "Arctic", 2.72,
+        2025, "SJM", "Arctic", 2.72,
+        2025, "ISL", "Arctic", 2.72
+    )
+```
+
+
+
+```{r}
+new_df[1,]$Anomaly
+```
+
+```{r}
+
+write_csv(country_anomaly_long, 
+        here("datasets/processed_datasets",
+            paste0(
+                "ncei-by_country_anomaly_",
+                 start_year,"_to_",end_year,"-",
+                 dataset_date,
+                 ".csv"
+            )
+        )
+)
+```
+
+
+# Output new merged and pivoted dataset to a .csv
+## Note this is not used, keeping for hostorical purposes.
+
+```{r dump to cvs}
+write_csv(regional_anomaly_long, 
+        here("datasets/processed_datasets",
+            paste0(
+                "ncei-merged_regional_anomaly_",
+                 start_year,"_to_",end_year,"-",
+                 dataset_date,
+                 ".csv"
+            )
+        )
+)
+```
+
+
