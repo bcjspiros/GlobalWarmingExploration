@@ -100,6 +100,7 @@ regional_anomaly <-
 
 Quick check to make sure there are no missing values, and that the data types of each column are numeric.
 
+
 ```{r Check merged dataset}
 colSums(is.na(regional_anomaly))
 sapply(regional_anomaly, typeof)
@@ -136,61 +137,44 @@ regional_anomaly_long <-
 
 The long format df created is still going to be useful for adding in all the countries of the world by ISO 3166 alpha-3 three letter country codes.
 
-Had Claude AI generate a list of all countries, their country code, and the continent they belong to.
-I moved Greenland (GRL), Svalbard (SJM), and Iceland (ISL) to the "arctic" so that region will be represented in the Tableau heat map.
+Had Claude AI generate a list of all countries, their ISO-3166 alpha-3 country code, and the continent they belong to.  
+I moved Greenland (GRL), Svalbard (SJM), and Iceland (ISL) to the "arctic" so that region will be represented in the Tableau heat map.  
+The continent of Antarctica is named "Antarctic" in the mapping file to match its name in the region file.
 
 ```{r Load mapping file,echo=TRUE,message=FALSE,warning=FALSE}
-country_codes <-
-    read_csv(here("datasets/other_datasets/iso3166_alpha3_by_continent.csv"))
+country_names <-
+    read_csv(here("datasets/other_datasets/continent_to_country_mapping.csv"))
 ```
 
-This code chunk builds the new dataframe 
+This code chunk builds the new dataframe by mapping the regional anomalies from the long format region file to the individual countries in those regions.
 
-```{r}
+```{r Map regions to individual countries} 
 country_anomaly_long <- regional_anomaly_long %>% 
     pmap(function(Year, Region, Anomaly) {
-        cc_list <- country_codes %>% 
+        country_list <- country_names %>% 
             filter(Continent == Region) %>% 
             pull(Country) %>% 
             as.list()
-        pmap(list(cc_list), function(cc) {
+        pmap(list(country_list), function(country) {
             tibble(
                 Year = Year,
-                Country = cc,
+                Country = country,
                 Anomaly = Anomaly
             ) 
         }) %>% list_rbind()
     }) %>% list_rbind()
 ```
 
-```{r}
-View(regional_anomaly_long)
+Another quick check
+
+```{r Check expanded dataset}
+colSums(is.na(country_anomaly_long))
+sapply(country_anomaly_long, typeof)
 ```
 
+# Output complete dataset to a .csv
 
-```{r}
-new_df <- 
-    tribble(
-        ~Year, ~ Country, ~Continent, ~Anomaly,
-        2025, "USA", "North America", 1.98,
-        2025, "CAN", "North America", 1.98,
-        2025, "MEX", "North America", 1.98,
-        2025, "AUS", "Oceania", 1.16,
-        2025, "NZL", "Oceania", 1.16,
-        2025, "ATA", "Antarctica", 0.51,
-        2025, "GRL", "Arctic", 2.72,
-        2025, "SJM", "Arctic", 2.72,
-        2025, "ISL", "Arctic", 2.72
-    )
-```
-
-
-
-```{r}
-new_df[1,]$Anomaly
-```
-
-```{r}
+```{r Write to CSV}
 
 write_csv(country_anomaly_long, 
         here("datasets/processed_datasets",
@@ -208,7 +192,7 @@ write_csv(country_anomaly_long,
 # Output new merged and pivoted dataset to a .csv
 ## Note this is not used, keeping for hostorical purposes.
 
-```{r dump to cvs}
+```{r echo=FALSE,results='hide',message=FALSE,warning=FALSE}
 write_csv(regional_anomaly_long, 
         here("datasets/processed_datasets",
             paste0(
@@ -221,4 +205,25 @@ write_csv(regional_anomaly_long,
 )
 ```
 
+# These were used for testing and aren't needed, but could be useful in the future
 
+```{r echo=FALSE,results='hide',message=FALSE,warning=FALSE}
+new_df <- 
+    tribble(
+        ~Year, ~ Country, ~Continent, ~Anomaly,
+        2025, "USA", "North America", 1.98,
+        2025, "CAN", "North America", 1.98,
+        2025, "MEX", "North America", 1.98,
+        2025, "AUS", "Oceania", 1.16,
+        2025, "NZL", "Oceania", 1.16,
+        2025, "ATA", "Antarctica", 0.51,
+        2025, "GRL", "Arctic", 2.72,
+        2025, "SJM", "Arctic", 2.72,
+        2025, "ISL", "Arctic", 2.72
+    )
+```
+
+
+```{recho=FALSE,results='hide',message=FALSE,warning=FALSE}
+new_df[1,]$Anomaly
+```
