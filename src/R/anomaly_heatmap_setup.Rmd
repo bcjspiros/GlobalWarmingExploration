@@ -189,6 +189,30 @@ write_csv(country_anomaly_long,
 ```
 
 
+
+# Tableau needs more hand holding.
+Need to create a CASE statement to map countries back to continents
+
+**NOTE**: creating the mapping case statement was easy, but it still wouldn't let me do what I wanted in Tableau. Keeping for future reference if needed.
+
+```{r}
+case_statement_vector <- c("CASE [Country]")
+
+for (i in seq_len(nrow(country_names))) {
+    case_statement_vector <- c(case_statement_vector, paste0(
+        "    WHEN \'", 
+        country_names[i,]$Country, 
+        "\' THEN \'", 
+        country_names[i,]$Continent, 
+        "\'"
+    ))
+}
+
+case_statement_vector <- c(case_statement_vector, "    ELSE 'Other'", "END")
+write_lines(case_statement_vector, here("case_statement_for_tableau.txt"))
+```
+
+
 # Output new merged and pivoted dataset to a .csv
 ## Note this is not used, keeping for hostorical purposes.
 
@@ -224,6 +248,3 @@ new_df <-
 ```
 
 
-```{recho=FALSE,results='hide',message=FALSE,warning=FALSE}
-new_df[1,]$Anomaly
-```
