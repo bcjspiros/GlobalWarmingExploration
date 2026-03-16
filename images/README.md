@@ -1,0 +1,1 @@
+# Images generated from src notebooks will be output in this directory.
