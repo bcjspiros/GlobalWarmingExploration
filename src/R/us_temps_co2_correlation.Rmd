@@ -92,7 +92,7 @@ co2_ustemp_corrplot <- ggplot(us_average_annual_co2_combined, mapping=aes(x=mean
         subtitle="C0"[2]~"concentration collected at the Mauna Loa Observatory",
         x="Atmospheric CO"[2]~"(ppm)",
         y="US Average Temperature (\u00B0F)",
-        caption="Sources: NOAA GML, trends in atmospheric CO2\nNOAA NCEI national time series average temperature"
+        caption="Sources:\nNOAA Global Monitoring Laboratory, trends in atmospheric CO2, Mar 2026\nNOAA National Centers for Environmental information, Climate at a Glance: National Time Series, Feb 2026"
     ) +
     theme(
         plot.margin=unit(c(3, 1, 3, 4), "mm"),
@@ -113,7 +113,7 @@ us_temp_timeseriesplot <- ggplot(us_average_annual_co2_combined, mapping=aes(x=y
         title="US National Average Temperature, 1979 to 2025",
         x="Year",
         y="US Average Temperature (\u00B0F)",
-        caption="Source: NOAA NCEI national time series average temperature"
+        caption="Source:\nNOAA National Centers for Environmental information, Climate at a Glance: National Time Series, Feb 2026"
     ) +
     theme(
         plot.margin=unit(c(3, 4, 3, 4), "mm"),

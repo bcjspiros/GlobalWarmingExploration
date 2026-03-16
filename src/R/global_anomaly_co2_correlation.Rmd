@@ -78,7 +78,7 @@ co2_anomaly_corrplot <- ggplot(global_anomaly_annual_co2_combined, mapping=aes(x
         subtitle="C0"[2]~"concentration globally averaged from marine surface collection sites",
         x="Atmospheric CO"[2]~"(ppm)",
         y="Anomaly (\u00B0C)",
-        caption="Sources: NOAA GML, trends in atmospheric CO2\nNOAA NCEI Global Time Series mean temperature anomaly"
+        caption="Sources:\nNOAA Global Monitoring Laboratory, trends in atmospheric CO2, Mar 2026\nNOAA National Centers for Environmental Information, Climate at a Glance: Global Time Series, Feb 2026"
     ) +
     annotate("text",
         x=350, y=1.00,

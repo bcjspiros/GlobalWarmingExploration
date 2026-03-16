@@ -61,7 +61,7 @@ ch4_timeseriesplot <- ggplot(gml_annual_ch4_gl, mapping=aes(x=year, y=mean)) +
         subtitle="CH"[4]~"concentration globally averaged from marine surface collection sites",
         x="Year",
         y="Atmospheric CH"[4]~"(ppb)",
-        caption="Source: NOAA GML, trends in atmospheric CH4"
+        caption="Source:\nNOAA Global Monitoring Laboratory, trends in atmospheric CH4, Mar 2026"
     ) +
     theme(
         plot.margin=unit(c(3, 4, 2, 4), "mm"),
