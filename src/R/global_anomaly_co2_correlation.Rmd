@@ -99,16 +99,16 @@ co2_anomaly_corrplot <- ggplot(global_anomaly_annual_co2_combined, mapping=aes(x
 co2_anomaly_corrplot
 ```
 
-To add to the correlation plot we'll create a combo plot showing the correlation plot paired with a plot of the atmospheric CO<sub>2</sub> concentration over time.
-
-First we create the timeseries plot
+We'll create a CO<sub>2</sub> concentration and mean global temperature anomaly combo plot
+First create the individual plots
 
 ```{r Plot CO2 timeseries}
 co2_timeseriesplot <- ggplot(global_anomaly_annual_co2_combined, mapping=aes(x=Year, y=Mean_CO2)) +
-    geom_point(color="red") +
-    geom_line(color="red") +
+    geom_point(color="deepskyblue") +
+    geom_line(color="deepskyblue") +
     labs(
         title="Atmospheric CO"[2]~"Concentration Over Time, 1979 to 2025",
+        subtitle="C0"[2]~"concentration globally averaged from marine surface collection sites",
         x="Year",
         y="Atmospheric CO"[2]~"(ppm)",
         # caption="Source: NOAA GML, trends in atmospheric CO2"
@@ -125,11 +125,34 @@ co2_timeseriesplot <- ggplot(global_anomaly_annual_co2_combined, mapping=aes(x=Y
     #               cols = unit(8, "cm"))
 co2_timeseriesplot
 ```
+```{r Plot anomaly timeseries}
+anomaly_timeseriesplot <- ggplot(global_anomaly_annual_co2_combined, mapping=aes(x=Year, y=Anomaly)) +
+    geom_point(color="firebrick") +
+    geom_line(color="firebrick") +
+    labs(
+        title="Global Mean Temperature Anomaly Over Time, 1979 to 2025",
+        subtitle="Anomaly measured as deviation from 1901 to 2000 mean",
+        x="Year",
+        y="Anomaly (\u00B0C)",
+        caption="Sources:\nNOAA Global Monitoring Laboratory, trends in atmospheric CO2, Mar 2026\nNOAA National Centers for Environmental Information, Climate at a Glance: Global Time Series, Feb 2026"
+    ) +
+    theme(
+        plot.margin=unit(c(2, 3, 2, 3), "mm"),
+        plot.caption=element_text(
+            hjust=0,
+            vjust=-1
+        )
+    )
+    # To fiddle around with later: changes the dimensions of the plots
+    # force_panelsizes(rows = unit(4, "cm"),
+    #               cols = unit(8, "cm"))
+anomaly_timeseriesplot
+```
 
 Then combine the two plots using the patchwork library
 
 ```{r Combined plots, message=FALSE, fig.width=14, fig.height=6}
-combo_plot <- co2_anomaly_corrplot + co2_timeseriesplot
+combo_plot <- anomaly_timeseriesplot + co2_timeseriesplot
 combo_plot
 ```
 
@@ -140,6 +163,6 @@ combo_plot
 ggsave(here("images","co2_v_globalanomaly.png"), plot=co2_anomaly_corrplot, width = 9, height = 6)
 
 # combo plot
-ggsave(here("images","co2_v_anomaly_combo.png"), plot=combo_plot, width = 14, height = 6)
+ggsave(here("images","co2_anomaly_combo.png"), plot=combo_plot, width = 14, height = 6)
 ```
 
